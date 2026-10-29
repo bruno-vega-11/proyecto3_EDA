@@ -84,7 +84,7 @@ class SplayTree {
 public:
     SplayTree() = default;
 
-    // Insert (por valor) adaptado mantener size
+    // Insert (por valor) adaptado mantener size (pruebas)
     void insert(long long int value) {
         Node* new_node = new Node(value);
 
@@ -113,6 +113,13 @@ public:
         Splay(new_node);
     }
 
+    // Insert (por posicion)
+    void insertkth(int k,long long value) {
+        Node* a = Split(k); // en root < k , a contiene >= k
+        Merge(root, new Node(value)); //
+        Merge(root,a);
+    }
+
     // Busqueda nodo posición k
     Node* kth(int k) {
         Node* curr = root;
@@ -135,6 +142,43 @@ public:
         inorderTraversal(root);
         cout << "\n";
     }
+
+    // dejar en root posiciones < k y devolver >= k
+    Node* Split(int k) {
+        if (!root) return nullptr;
+        if (k <= 0) { // todo a la derecha
+            Node* r = root;
+            root = nullptr;
+            return r;
+        }
+        if (k >= root->size) return nullptr; // todo a la izquierda
+        Node* node = kth(k);
+        root = node->left;
+        root->parent = nullptr;
+        node->left = nullptr;
+        update_size(node);
+        return node;
+    }
+
+    // une 2 arboles donde inorder es todo tree1 seguido de tree2
+    // tree 1 y tree 2 son arboles sueltos
+    Node* Merge(Node* tree1,Node* tree2) {
+        if (tree1 == nullptr) {
+            root = tree2;
+            return tree2;
+        }
+        if (tree2 == nullptr) {
+            root = tree1;
+            return tree1;
+        }
+        root = tree1;
+        Node* tree1_modified = kth(root->size - 1);
+        tree1_modified->right = tree2;
+        tree2->parent = tree1_modified;
+
+        update_size(tree1_modified);
+        return tree1_modified;
+    }
 };
 
 int main() {
@@ -149,7 +193,7 @@ int main() {
     for (int i = 0; i < n; i ++) {
         long long int a;
         cin >> a;
-        t.insert(a);
+        t.insertkth(i,a);
     }
 
     for (int i = 0;i< q; i++) {
