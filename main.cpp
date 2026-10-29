@@ -1,5 +1,7 @@
 #include <iostream>
 
+using namespace std;
+
 struct Node {
     int value;
     Node* right = nullptr;
@@ -49,7 +51,7 @@ class SplayTree {
             if (!g) {
                 rotate(x);
             } else {
-                if ((g->left == p)&&(p->left == x)) {
+                if ((g->left == p) == (p->left == x)) {
                     rotate(p);
                     rotate(x);
                 } else {
@@ -62,10 +64,48 @@ class SplayTree {
 public:
     SplayTree() = default;
 
-    Node* Search(int v) {
-        Node* curr = root;
+    void insert(int value) {
+        Node* new_node = new Node(value);
 
+        if (!root) {
+            root = new_node;
+            return;
+        }
+
+        Node* curr = root;
+        Node* anterior = nullptr;
+        while (curr) {
+            anterior = curr;
+            curr = (value < curr->value)? curr->left:curr->right;
+        }
+        new_node->parent = anterior;
+        if (value < anterior->value) {
+            anterior->left = new_node;
+        } else {
+            anterior->right = new_node;
+        }
+        Splay(new_node);
     }
 
+    void inorderTraversal(Node* node) {
+        if (node == nullptr)return;
 
+        inorderTraversal(node->left);
+        cout << node->value << " ";
+        inorderTraversal(node->right);
+    }
+
+    void print() {
+        inorderTraversal(root);
+        cout << "\n";
+    }
 };
+
+int main() {
+    SplayTree t;
+    int arr[] = {5,3,8,1,4,7,9};
+    for (int i=0;i<7;i++) {
+        t.insert(arr[i]);
+    }
+    t.print();
+}
