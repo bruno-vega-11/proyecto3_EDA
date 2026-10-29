@@ -3,16 +3,25 @@
 using namespace std;
 
 struct Node {
-    int value;
+    long long int value;
+    int size = 1; // nodos en el subarbol contado el mismo nodo
     Node* right = nullptr;
     Node* left = nullptr;
     Node* parent = nullptr;
-    Node(int _v):value(_v){}
-    Node(int _v,Node* _right,Node* _left,Node* _parent):value(_v),right(_right),left(_left),parent(_parent){}
+    Node(long long int _v):value(_v){}
+    Node(long long int _v,Node* _right,Node* _left,Node* _parent):value(_v),right(_right),left(_left),parent(_parent){}
 };
 
 class SplayTree {
     Node* root = nullptr;
+
+    // Mantener size;
+    void update_size(Node* x) {
+        int left = x->left? x->left->size:0;
+        int right = x->right? x->right->size:0;
+        x->size = 1 + left + right;
+    }
+
 
     // Rotacion
     void rotate(Node* x) {
@@ -42,6 +51,8 @@ class SplayTree {
         } else {
             root = x;
         }
+        update_size(p);
+        update_size(x);
     }
 
     void Splay(Node* x) {
@@ -61,10 +72,20 @@ class SplayTree {
             }
         }
     }
+
+    void inorderTraversal(Node* node) {
+        if (node == nullptr)return;
+
+        inorderTraversal(node->left);
+        cout << node->value << " ";
+        inorderTraversal(node->right);
+    }
+
 public:
     SplayTree() = default;
 
-    void insert(int value) {
+    // Insert (por valor) adaptado mantener size
+    void insert(long long int value) {
         Node* new_node = new Node(value);
 
         if (!root) {
@@ -84,15 +105,30 @@ public:
         } else {
             anterior->right = new_node;
         }
+        Node* temp = anterior;
+        while (temp != nullptr) {
+            update_size(temp);
+            temp = temp->parent;
+        }
         Splay(new_node);
     }
 
-    void inorderTraversal(Node* node) {
-        if (node == nullptr)return;
-
-        inorderTraversal(node->left);
-        cout << node->value << " ";
-        inorderTraversal(node->right);
+    // Busqueda nodo posición k
+    Node* kth(int k) {
+        Node* curr = root;
+        while (curr != nullptr) {
+            int izq = (curr->left)?curr->left->size:0;
+            if (k < izq) {
+                curr = curr->left;
+            } else if (k == izq) {
+                Splay(curr);
+                return curr;
+            } else {
+                k -= izq + 1;
+                curr = curr->right;
+            }
+        }
+        return nullptr;
     }
 
     void print() {
@@ -102,10 +138,31 @@ public:
 };
 
 int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
     SplayTree t;
-    int arr[] = {5,3,8,1,4,7,9};
-    for (int i=0;i<7;i++) {
-        t.insert(arr[i]);
+
+    int n,q;
+    cin>>n>>q;
+
+    for (int i = 0; i < n; i ++) {
+        long long int a;
+        cin >> a;
+        t.insert(a);
     }
+
+    for (int i = 0;i< q; i++) {
+        char wa;
+        cin >> wa;
+        if (wa == 'A') {
+            cout << "Consulta tipo A" << endl;
+        } else if (wa == 'R') {
+            cout << "Consulta tipo R" << endl;
+        }
+    }
+
     t.print();
+    Node* wa = t.kth(3);
+    cout << wa->value << endl;
 }
