@@ -249,6 +249,16 @@ public:
         Merge(izq,temp); // root = [0...l...r]
         Merge(root,B);   // root = [0...l...r...n]
     }
+
+    //se asume que 1<=k<=n
+    void queryE(int k) {
+        Node* A = Split(k-1); //root = [0...k), A = [k...n]
+        Node* izq = root;
+        root = A;
+        Node* B = Split(1); //root = [k], B = (k...n]
+        delete root;
+        Merge(izq,B);
+    }
 };
 
 int main() {
@@ -276,6 +286,10 @@ int main() {
             t.queryA(l,r,x);
         } else if (wa == 'R') {
             cout << "Consulta tipo R" << endl;
+        } else if (wa == 'E') {
+            int k;
+            cin >> k;
+            t.queryE(k);
         } else if (wa == 'I'){
             int k;
             long long int x;
