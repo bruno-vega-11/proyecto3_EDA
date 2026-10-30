@@ -1,9 +1,11 @@
 #include <iostream>
+#include <vector>
 
 using namespace std;
 
 struct Node {
     long long int value;
+    long long int add = 0; // value que falta sumar hijos y descendientes (nunca a si mismo)
     long long int min_subtree = -1; // minimo value en el subrabol contando el nodo mismo
     int size = 1; // nodos en el subarbol contado el mismo nodo
     Node* right = nullptr;
@@ -14,6 +16,7 @@ struct Node {
 };
 
 class SplayTree {
+public:
     Node* root = nullptr;
 
     // Mantener size y minsubtree;
@@ -68,6 +71,16 @@ class SplayTree {
     }
 
     void Splay(Node* x) {
+        vector<Node*> camino_pendiente;
+        Node* temp = x;
+        while (temp) {
+            camino_pendiente.push_back(temp);
+            temp = temp->parent;
+        }
+        int size_camino_pendiente = static_cast<int>(camino_pendiente.size());
+        for (int i = size_camino_pendiente - 1; i >= 0;i--) {
+            cascade_sum_k(camino_pendiente[i]);
+        }
         while (x->parent) {
             Node* p = x->parent;
             Node* g = p->parent;
@@ -88,12 +101,12 @@ class SplayTree {
     void inorderTraversal(Node* node) {
         if (node == nullptr)return;
 
+        cascade_sum_k(node);
         inorderTraversal(node->left);
         cout << node->value << " ";
         inorderTraversal(node->right);
     }
 
-public:
     SplayTree() = default;
 
     // Insert (por valor) adaptado mantener size (pruebas)
@@ -192,6 +205,25 @@ public:
         return tree1_modified;
     }
 
+    void cascade_sum_k(Node* node) {
+        if (node->add != 0) {
+            if (node->left) {
+                sum_k(node->left,node->add);
+            }
+            if (node->right) {
+                sum_k(node->right,node->add);
+            }
+            node->add = 0;
+        }
+    }
+
+    // helper queryA
+    void sum_k(Node* node,long long int k) {
+        node->value += k;
+        node->min_subtree+= k;
+        node->add += k;
+    }
+
     // se asume que l <= r
     long long int queryM(int l, int r) {
         Node* A = Split(l-1); //root = [0...l), A = [l...n]
@@ -203,6 +235,19 @@ public:
         Merge(izq,rango);
         Merge(root,B);
         return rpta;
+    }
+
+    // se asume que l <= r;
+    void queryA(int l,int r,long long int x) {
+        Node* A = Split(l-1); //root = [0...l), A = [l...n]
+        Node* izq = root;
+        root = A;
+        Node* B = Split(r-l+1);//root = [l...r], B = (r...n]
+        sum_k(root,x);
+        // volver a unirlo
+        Node* temp = root;
+        Merge(izq,temp); // root = [0...l...r]
+        Merge(root,B);   // root = [0...l...r...n]
     }
 };
 
@@ -225,17 +270,21 @@ int main() {
         char wa;
         cin >> wa;
         if (wa == 'A') {
-            cout << "Consulta tipo A" << endl;
+            int l,r;
+            long long int x;
+            cin >> l >> r >> x;
+            t.queryA(l,r,x);
         } else if (wa == 'R') {
             cout << "Consulta tipo R" << endl;
+        } else if (wa == 'I'){
+            int k;
+            long long int x;
+            cin >> k >> x;
+            t.insertkth(k,x);
         } else if (wa == 'M') {
             int l,r;
             cin >> l >> r;
             cout << t.queryM(l,r) << "\n";
         }
     }
-
-    t.print();
-    Node* wa = t.kth(3);
-    cout << wa->value << endl;
 }
