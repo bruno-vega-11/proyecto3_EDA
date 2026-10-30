@@ -4,24 +4,40 @@ using namespace std;
 
 struct Node {
     long long int value;
+    long long int min_subtree = -1; // minimo value en el subrabol contando el nodo mismo
     int size = 1; // nodos en el subarbol contado el mismo nodo
     Node* right = nullptr;
     Node* left = nullptr;
     Node* parent = nullptr;
-    Node(long long int _v):value(_v){}
+    Node(long long int _v):value(_v),min_subtree(_v){}
     Node(long long int _v,Node* _right,Node* _left,Node* _parent):value(_v),right(_right),left(_left),parent(_parent){}
 };
 
 class SplayTree {
     Node* root = nullptr;
 
-    // Mantener size;
-    void update_size(Node* x) {
-        int left = x->left? x->left->size:0;
-        int right = x->right? x->right->size:0;
-        x->size = 1 + left + right;
-    }
+    // Mantener size y minsubtree;
+    void update(Node* x) {
+        int left_size,right_size;
+        long long int left_minsubtree, right_minsubtree;
+        if (x->left) {
+            left_size = x->left->size;
+            left_minsubtree = x->left->min_subtree;
+        } else {
+            left_size = 0;
+            left_minsubtree = 0;
+        }
+        if (x->right) {
+            right_size = x->right->size;
+            right_minsubtree = x->right->min_subtree;
+        } else {
+            right_size = 0;
+            right_minsubtree = 0;
+        }
 
+        x->size = 1 + left_size + right_size;
+        x->min_subtree = min(left_minsubtree,right_minsubtree);
+    }
 
     // Rotacion
     void rotate(Node* x) {
@@ -51,8 +67,8 @@ class SplayTree {
         } else {
             root = x;
         }
-        update_size(p);
-        update_size(x);
+        update(p);
+        update(x);
     }
 
     void Splay(Node* x) {
@@ -107,7 +123,7 @@ public:
         }
         Node* temp = anterior;
         while (temp != nullptr) {
-            update_size(temp);
+            update(temp);
             temp = temp->parent;
         }
         Splay(new_node);
@@ -156,7 +172,7 @@ public:
         root = node->left;
         root->parent = nullptr;
         node->left = nullptr;
-        update_size(node);
+        update(node);
         return node;
     }
 
@@ -176,8 +192,21 @@ public:
         tree1_modified->right = tree2;
         tree2->parent = tree1_modified;
 
-        update_size(tree1_modified);
+        update(tree1_modified);
         return tree1_modified;
+    }
+
+    // se asume que l <= r
+    long long int queryM(int l, int r) {
+        Node* A = Split(l-1); //root = [0...l), A = [l...n]
+        Node* izq = root;
+        root = A;
+        Node* B = Split(r-l+1); //root = [l...r], B = (r...n]
+        long long rpta = root->min_subtree;
+        Node* rango = root;
+        Merge(izq,rango);
+        Merge(root,B);
+        return rpta;
     }
 };
 
@@ -203,6 +232,10 @@ int main() {
             cout << "Consulta tipo A" << endl;
         } else if (wa == 'R') {
             cout << "Consulta tipo R" << endl;
+        } else if (wa == 'M') {
+            int l,r;
+            cin >> l >> r;
+            cout << t.queryM(l,r) << "\n";
         }
     }
 
