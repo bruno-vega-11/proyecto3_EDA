@@ -19,24 +19,20 @@ class SplayTree {
     // Mantener size y minsubtree;
     void update(Node* x) {
         int left_size,right_size;
-        long long int left_minsubtree, right_minsubtree;
+        x->min_subtree = x->value;
         if (x->left) {
             left_size = x->left->size;
-            left_minsubtree = x->left->min_subtree;
+            x->min_subtree = min(x->left->min_subtree,x->min_subtree);
         } else {
             left_size = 0;
-            left_minsubtree = 0;
         }
         if (x->right) {
             right_size = x->right->size;
-            right_minsubtree = x->right->min_subtree;
+            x->min_subtree = min(x->right->min_subtree,x->min_subtree);
         } else {
             right_size = 0;
-            right_minsubtree = 0;
         }
-
         x->size = 1 + left_size + right_size;
-        x->min_subtree = min(left_minsubtree,right_minsubtree);
     }
 
     // Rotacion
