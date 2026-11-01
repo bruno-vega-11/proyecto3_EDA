@@ -8,6 +8,7 @@ struct Node {
     long long int add = 0; // value que falta sumar hijos y descendientes (nunca a si mismo)
     long long int min_subtree = -1; // minimo value en el subrabol contando el nodo mismo
     int size = 1; // nodos en el subarbol contado el mismo nodo
+    bool rev = false; // reversa pendiente para hijos y descendientes (el nodo ya tiene sus hijos intercambiados)
     Node* right = nullptr;
     Node* left = nullptr;
     Node* parent = nullptr;
@@ -149,6 +150,7 @@ public:
     Node* kth(int k) {
         Node* curr = root;
         while (curr != nullptr) {
+            cascade_sum_k(curr); // propagar antes de bajar (necesario por la reversa)
             int izq = (curr->left)?curr->left->size:0;
             if (k < izq) {
                 curr = curr->left;
@@ -215,6 +217,21 @@ public:
             }
             node->add = 0;
         }
+        if (node->rev) {
+            if (node->left) {
+                reverse_k(node->left);
+            }
+            if (node->right) {
+                reverse_k(node->right);
+            }
+            node->rev = false;
+        }
+    }
+
+    // helper queryR
+    void reverse_k(Node* node) {
+        swap(node->left,node->right);
+        node->rev = !node->rev;
     }
 
     // helper queryA
@@ -260,8 +277,17 @@ public:
         Merge(izq,B);
     }
 
+    // se asume que l <= r
     void queryR(int l,int r) {
-
+        Node* A = Split(l-1); 
+        Node* izq = root;
+        root = A;
+        Node* B = Split(r-l+1);
+        reverse_k(root);
+        // volver a unirlo
+        Node* temp = root;
+        Merge(izq,temp); 
+        Merge(root,B);   
     }
 
     //se asume que l <= r
