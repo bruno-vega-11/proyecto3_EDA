@@ -259,6 +259,29 @@ public:
         delete root;
         Merge(izq,B);
     }
+
+    void queryR(int l,int r) {
+
+    }
+
+    //se asume que l <= r
+    void queryO(int l,int r,int k) {
+        Node* A = Split(l-1); //root =[0...l), A =[l...n]
+        Node* izq = root;
+        root = A;
+        Node* B = Split(r-l+1); //root = [l...r], B = (r...m]
+        k %= r-l+1;
+        if (k>0) {
+            Node* X = Split(r-l+1 -k);
+            Node* Y = root;
+            Merge(X,Y);
+        }
+        // la rotacion deja igual
+        // falta unir
+        Node* temp = root;
+        Merge(izq,temp);
+        Merge(root,B);
+    }
 };
 
 int main() {
@@ -285,7 +308,9 @@ int main() {
             cin >> l >> r >> x;
             t.queryA(l,r,x);
         } else if (wa == 'R') {
-            cout << "Consulta tipo R" << endl;
+            int l,r;
+            cin >> l >> r;
+            t.queryR(l,r);
         } else if (wa == 'E') {
             int k;
             cin >> k;
@@ -295,7 +320,11 @@ int main() {
             long long int x;
             cin >> k >> x;
             t.insertkth(k,x);
-        } else if (wa == 'M') {
+        } else if (wa == 'O') {
+            int l,r,k;
+            cin >> l >> r >> k;
+            t.queryO(l,r,k);
+        }else if (wa == 'M') {
             int l,r;
             cin >> l >> r;
             cout << t.queryM(l,r) << "\n";
